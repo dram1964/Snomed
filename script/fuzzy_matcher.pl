@@ -8,21 +8,21 @@ my $csv = Text::CSV->new(
         eol => "\r\n",
     }) or die "Cannot use CSV: " . Text::CSV->error_diag();
 
-my $output = 'logs/fuzzy_match.csv';
+my $output = '/home/dramlak/SNOMED/logs/fuzzy_match_all.csv';
 open my $fh, ">:encoding(utf8)", $output or die "$output:$!";
 
 my $double_quote = q/"/;
 my $schema = EHRS_Snomed::Model->connect('CRIU_EHRS_Snomed');
 my $debug = 4;
 
-my $procedures = $schema->resultset('DentalDescription');
+my $procedures = $schema->resultset('CombinedDescription');
 my $procedure_count = 0;
 while (my $procedure = $procedures->next) {
     if ($debug <= 4) {
         print ++$procedure_count, ")",  $double_quote, $procedure->current_procedure, $double_quote,  "\n";
     }
     &find_matches($procedure );
-    exit 0 if ($procedure_count > 10);
+    #exit 0 if ($procedure_count > 10);
 }
 close $fh;
 
@@ -39,6 +39,7 @@ sub find_matches {
             $procedure_words{$procedure_word} = 1;
     }
     my $procedure_word_count = scalar(keys %procedure_words);
+    return 0 if $procedure_word_count < 1;
     if ($debug <= 3 ) {
         print join(":", (keys %procedure_words)), "\n" if ($debug == 1);
         print scalar(keys %procedure_words), " Procedure Words found\n";
@@ -91,8 +92,8 @@ sub find_matches {
                             " to ", $double_quote, $procedure->current_procedure, $double_quote, "\n";
                     }
                 }
-                if ($percent_match == 100 && $percent_miss == 0) {
-                    print "Perfect match: ", $double_quote,  $term->$field, $double_quote, " to ", 
+                if ($percent_match >= 70) {
+                    print "Match Found: ", $double_quote,  $term->$field, $double_quote, " to ", 
                         $double_quote, $procedure->current_procedure, $double_quote, "\n";
                     $csv->print($fh, $_) for [
                         $percent_match,
