@@ -8,6 +8,6 @@ make_schema_at(
     },
     [
         'dbi:ODBC:DSN=CRIU_EHRS_Snomed',
-        'dr00', 'letmein', { LongReadLen => 180, LongTruncOk => 1 }
+        'user', 'password', { LongReadLen => 180, LongTruncOk => 1 }
     ],
 );
